@@ -52,8 +52,10 @@ namespace System.Windows.Forms {
         public bool UseMnemonic { get; set; } = true;
         private static AvControl Make(out AvTextBlock t) { t = new AvTextBlock { TextWrapping = Avalonia.Media.TextWrapping.Wrap }; return t; }
         public Label() : base(Make(out AvTextBlock t)) { _tb = t; AutoSize = true; Height = 15; }
-        protected override void ApplyText() => _tb.Text = Text;
-        protected override void ApplyColors() { _tb.Foreground = new Avalonia.Media.SolidColorBrush(ToAv(ForeColor)); }
+        protected override void ApplyText() => ((AvTextBlock)Native).Text = Text;
+        protected override void ApplyColors() {
+            ((AvTextBlock)Native).Foreground = new Avalonia.Media.SolidColorBrush(ToAv(ForeColor));
+        }
         public override Size GetPreferredSize(Size proposedSize) {
             Size s = TextRenderer.MeasureText(Text, Font);
             return new Size(s.Width + 4, s.Height + 2);
@@ -211,7 +213,7 @@ namespace System.Windows.Forms {
         public void PerformStep() => Value = Math.Min(Maximum, Value + Step);
     }
     public enum ProgressBarStyle { Blocks = 0, Continuous = 1, Marquee = 2 }
-    public class PictureBox : Control {
+    public class PictureBox : Control, ISupportInitialize {
         private readonly AvImage _img;
         public PictureBoxSizeMode SizeMode { get; set; }
         public Image? Image {
@@ -220,6 +222,8 @@ namespace System.Windows.Forms {
         }
         private Image? _image;
         public PictureBox() : base(Make(out AvImage i)) { _img = i; Size = new Size(100, 50); }
+        public void BeginInit() { }
+        public void EndInit() { }
         private static AvControl Make(out AvImage i) { i = new AvImage(); return i; }
         private void ApplyImage() {
             if (_image is Bitmap bmp) {

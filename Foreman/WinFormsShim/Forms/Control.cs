@@ -16,7 +16,9 @@ using AvVisual = Avalonia.Visual;
 namespace System.Windows.Forms {
     public partial class Control : Component, IWin32Window, IDropTarget {
         internal AvControl Native { get; }
-        internal WfHostPanel? HostPanel => Native as WfHostPanel;
+        internal WfHostPanel? HostPanel =>
+            Native as WfHostPanel
+            ?? (Native as Avalonia.Controls.ScrollViewer)?.Content as WfHostPanel;
         private Control? _parent;
         private string _text = "";
         private bool _visible = true;
@@ -74,7 +76,12 @@ namespace System.Windows.Forms {
         }
         public Rectangle ClientRectangle => new(0, 0, ClientSize.Width, ClientSize.Height);
         public virtual Size ClientSize {
-            get => new(Math.Max(0, Width - (BorderStyle == BorderStyle.None ? 0 : 2)), Math.Max(0, Height - (BorderStyle == BorderStyle.None ? 0 : 2)));
+            get {
+                int chrome = BorderStyle == BorderStyle.None ? 0 : 2;
+                int vs = AutoScroll && VerticalScroll.Visible ? SystemInformation.VerticalScrollBarWidth : 0;
+                int hs = AutoScroll && HorizontalScroll.Visible ? SystemInformation.HorizontalScrollBarHeight : 0;
+                return new Size(Math.Max(0, Width - chrome - vs), Math.Max(0, Height - chrome - hs));
+            }
             set => Size = new Size(value.Width + (BorderStyle == BorderStyle.None ? 0 : 2), value.Height + (BorderStyle == BorderStyle.None ? 0 : 2));
         }
         public Point Location {
@@ -227,6 +234,8 @@ namespace System.Windows.Forms {
             Native.DoubleTapped += (_, _) => { DoubleClick?.Invoke(this, EventArgs.Empty); MouseDoubleClick?.Invoke(this, new MouseEventArgs(MouseButtons.Left, 2, 0, 0, 0)); };
             if (native is WfHostPanel host)
                 host.Owner = this;
+            else if (native is Avalonia.Controls.ScrollViewer sv && sv.Content is WfHostPanel inner)
+                inner.Owner = this;
             ApplyColors();
             Width = 100;
             Height = 23;
@@ -277,6 +286,7 @@ namespace System.Windows.Forms {
         }
         public void PerformLayout() {
             if (_layoutSuspend > 0) return;
+            WfLayout.Arrange(this, new Rectangle(0, 0, Math.Max(0, Width), Math.Max(0, Height)));
             HostPanel?.InvalidateArrange();
             HostPanel?.InvalidateMeasure();
             Layout?.Invoke(this, new LayoutEventArgs(this, "Layout"));

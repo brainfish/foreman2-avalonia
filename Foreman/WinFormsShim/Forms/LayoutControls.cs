@@ -57,6 +57,19 @@ namespace System.Windows.Forms {
                     c.Size = pref;
                 }
             }
+            UpdateScrollBars(owner, client);
+        }
+
+        private static void UpdateScrollBars(Control owner, Rectangle client) {
+            if (!owner.AutoScroll) return;
+            int right = 0, bottom = 0;
+            foreach (Control c in owner.Controls) {
+                if (!c.Visible) continue;
+                right = Math.Max(right, c.Right + c.Margin.Right);
+                bottom = Math.Max(bottom, c.Bottom + c.Margin.Bottom);
+            }
+            owner.VerticalScroll.Visible = bottom > client.Height;
+            owner.HorizontalScroll.Visible = right > client.Width;
         }
 
         private static void ArrangeSplit(SplitContainer split, Rectangle client) {
@@ -141,6 +154,7 @@ namespace System.Windows.Forms {
                     c.SetBounds(x, y, cw, ch);
                 }
             }
+            UpdateScrollBars(table, client);
         }
 
         private static float[] Distribute((SizeType Type, float Value)[] styles, int total, int count) {
@@ -194,6 +208,7 @@ namespace System.Windows.Forms {
                     rowH = Math.Max(rowH, sz.Height + c.Margin.Vertical);
                 }
             }
+            UpdateScrollBars(flow, client);
         }
     }
 
@@ -212,8 +227,16 @@ namespace System.Windows.Forms {
         public bool ValidateChildren() => true;
     }
     public class Panel : ScrollableControl {
-        public Panel() { }
+        public Panel() : base(MakeScrollHost()) { }
         internal Panel(Avalonia.Controls.Control native) : base(native) { }
+        private static Avalonia.Controls.Control MakeScrollHost() {
+            var host = new WfHostPanel();
+            return new Avalonia.Controls.ScrollViewer {
+                Content = host,
+                HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto,
+                VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto,
+            };
+        }
         public override Size GetPreferredSize(Size proposedSize) => base.GetPreferredSize(proposedSize);
     }
     public class GroupBox : Panel {

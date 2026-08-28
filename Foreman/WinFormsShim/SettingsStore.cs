@@ -9,6 +9,14 @@ namespace Foreman.Properties {
             "Foreman", "user-settings.json");
 
         private readonly Dictionary<string, JsonNode?> _values = new(StringComparer.Ordinal);
+        private static readonly HashSet<string> BoolKeys = new(StringComparer.Ordinal) {
+            "AltGridlines","ShowHidden","IgnoreAssemblerStatus","DynamicLineWidth","RecipeNameOnlyFilter",
+            "ShowRecipeToolTip","ShowUnavailable","LockedRecipeEditorPosition","UseRecipeBWfilters",
+            "ShowWarningArrows","ShowErrorArrows","AbbreviateSciPacks","RoundAssemblerCount",
+            "EnableExtraProductivityForNonMiners","ShowDisconnectedArrows","FlagOUSuppliedNodes",
+            "ShowOUSuppliedArrows","IconsOnlyView","SimplePassthroughNodes","ArrowsOnLinks",
+            "SmartNodeDirection","FlagDarkMode","UpgradeRequired"
+        };
         private static readonly Settings defaultInstance = new();
         public static Settings Default => defaultInstance;
 
@@ -27,6 +35,7 @@ namespace Foreman.Properties {
                 return DefaultFor(key);
             return n switch {
                 JsonValue v when v.TryGetValue(out bool b) => b,
+                JsonValue v when BoolKeys.Contains(key) && v.TryGetValue(out int i) => i != 0,
                 JsonValue v when v.TryGetValue(out int i) => i,
                 JsonValue v when v.TryGetValue(out string? s) => s ?? "",
                 _ => n.ToString()
@@ -64,9 +73,12 @@ namespace Foreman.Properties {
             }
         }
 
-        private static object DefaultFor(string key) => key switch {
-            "ShowRecipeToolTip" or "UseRecipeBWfilters" or "ShowWarningArrows" or "ShowErrorArrows"
-                or "AbbreviateSciPacks" or "SmartNodeDirection" or "UpgradeRequired" => true,
+        private static object DefaultFor(string key) {
+            if (BoolKeys.Contains(key)) {
+                return key is "ShowRecipeToolTip" or "UseRecipeBWfilters" or "ShowWarningArrows" or "ShowErrorArrows"
+                    or "AbbreviateSciPacks" or "SmartNodeDirection" or "UpgradeRequired";
+            }
+            return key switch {
             "NodeCountForSimpleView" => 300,
             "IconsSize" => 24,
             "AnnotTextFontFamily" => "Segoe UI",
@@ -78,7 +90,8 @@ namespace Foreman.Properties {
             "AnnotShapeBorderColorARGB" => -600016676,
             "AnnotShapeBorderWidth" => 2,
             _ => key.Contains("ARGB", StringComparison.Ordinal) ? 0 : key.EndsWith("Name", StringComparison.Ordinal) ? "" : (object)0
-        };
+            };
+        }
 
         private void LoadDefaults() {
             string[] keys = [

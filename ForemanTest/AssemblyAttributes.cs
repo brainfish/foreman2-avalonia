@@ -1,3 +1,4 @@
-﻿using System.Runtime.Versioning;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Runtime.Versioning;
 
-[assembly: SupportedOSPlatform("windows8.0")]
+[assembly: DoNotParallelize]

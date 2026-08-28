@@ -30,11 +30,14 @@ namespace System.Windows.Forms {
                 life.Shutdown();
         }
         public static void ExitThread() => Exit();
+        public static void Run() {
+            AvaloniaBootstrap.Run();
+        }
         public static void Run(Form form) {
             MainForm = form;
             OpenForms.Add(form);
             AvaloniaBootstrap.PendingMainForm = form;
-            AvaloniaBootstrap.Run(form);
+            AvaloniaBootstrap.Run();
         }
         public static void Restart() { }
     }
@@ -66,7 +69,7 @@ namespace System.Windows.Forms {
                 .SetupWithoutStarting();
         }
 
-        public static void Run(Form mainForm) {
+        public static void Run() {
             AppBuilder.Configure<ForemanAvaloniaApp>()
                 .UsePlatformDetect()
                 .WithInterFont()
@@ -85,6 +88,8 @@ namespace System.Windows.Forms {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
                 Form form = AvaloniaBootstrap.PendingMainForm ?? new Foreman.MainForm();
                 Application.MainForm = form;
+                if (!Application.OpenForms.Contains(form))
+                    Application.OpenForms.Add(form);
                 AvaloniaBootstrap.PendingMainForm = form;
                 desktop.MainWindow = form.Window;
                 form.Show();

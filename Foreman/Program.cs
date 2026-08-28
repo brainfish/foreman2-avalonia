@@ -17,8 +17,7 @@ namespace Foreman {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
-            using var form = new MainForm();
-            Application.Run(form);
+            Application.Run();
         }
 
         /// <summary>

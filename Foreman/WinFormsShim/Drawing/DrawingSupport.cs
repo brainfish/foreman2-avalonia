@@ -462,6 +462,8 @@ namespace System.Drawing {
             format ??= StringFormat.GenericDefault;
             p.TextAlign = SKTextAlign.Left;
             p.IsAntialias = true;
+            p.Typeface = skFont.Typeface;
+            p.TextSize = skFont.Size;
             float x = layout.X;
             float y = layout.Y;
             float textW = p.MeasureText(s);
@@ -515,8 +517,10 @@ namespace System.Drawing {
             if (string.IsNullOrEmpty(text)) return SizeF.Empty;
             using SKPaint p = new() { IsAntialias = true };
             using SKFont skFont = MakeFont(font);
+            p.Typeface = skFont.Typeface;
+            p.TextSize = skFont.Size;
             float w = p.MeasureText(text);
-            float h = skFont.Metrics.Descent - skFont.Metrics.Ascent;
+            float h = Math.Max(skFont.Size * 1.25f, skFont.Metrics.Descent - skFont.Metrics.Ascent);
             return new SizeF(w + 2, h + 2);
         }
         public SizeF MeasureString(string? text, Font font, int width) {
